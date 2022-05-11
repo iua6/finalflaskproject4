@@ -1,11 +1,15 @@
-from flask import Blueprint, render_template, redirect, url_for, flash,current_app
+import logging
+from flask import Blueprint, render_template, redirect, url_for, flash,current_app, abort
 from flask_login import login_user, login_required, logout_user, current_user
+from jinja2 import TemplateNotFound
+from sqlalchemy import select
 from werkzeug.security import generate_password_hash
 
 from app.auth.decorators import admin_required
 from app.auth.forms import login_form, register_form, profile_form, security_form, user_edit_form
 from app.db import db
-from app.db.models import User
+from app.db.models import User, Transaction
+from flask_mail import Message
 
 auth = Blueprint('auth', __name__, template_folder='templates')
 
@@ -25,6 +29,15 @@ def register():
                 user.is_admin = 1
                 db.session.add(user)
                 db.session.commit()
+
+                msg = Message("Welcome to the site",
+                              sender="from@example.com",
+                              recipients=[user.email])
+                msg.body = "Welcome to the site"
+
+                current_app.mail.send(msg)
+
+
             flash('Congratulations, you are now a registered user!', "success")
             return redirect(url_for('auth.login'), 302)
         else:
@@ -64,11 +77,25 @@ def logout():
 
 
 
-@auth.route('/dashboard')
+@auth.route('/dashboard', methods=['GET'], defaults={"page": 1})
+@auth.route('/dashboard/<int:page>', methods=['GET'])
 @login_required
-def dashboard():
-    return render_template('dashboard.html')
+def dashboard(page):
+    page = page
 
+    data = Transaction.query.filter_by(user_id=current_user.id)
+    log = logging.getLogger("myApp")
+    log.info(data)
+    if len(current_user.transactions) != 0:
+        try:
+            return render_template('dashboard.html',data=data)
+        except TemplateNotFound:
+            abort(404)
+    else:
+        try:
+            return render_template('dashboard.html')
+        except TemplateNotFound:
+            abort(404)
 
 @auth.route('/profile', methods=['POST', 'GET'])
 def edit_profile():
@@ -110,9 +137,7 @@ def browse_users():
     edit_url = ('auth.edit_user', [('user_id', ':id')])
     add_url = url_for('auth.add_user')
     delete_url = ('auth.delete_user', [('user_id', ':id')])
-
     current_app.logger.info("Browse page loading")
-
     return render_template('browse.html', titles=titles, add_url=add_url, edit_url=edit_url, delete_url=delete_url,
                            retrieve_url=retrieve_url, data=data, User=User, record_type="Users")
 
@@ -143,11 +168,11 @@ def edit_user(user_id):
 @auth.route('/users/new', methods=['POST', 'GET'])
 @login_required
 def add_user():
-    form = register_form()
+    form = create_user_form()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = User(email=form.email.data, password=generate_password_hash(form.password.data))
+            user = User(email=form.email.data, password=generate_password_hash(form.password.data), is_admin=int(form.is_admin.data))
             db.session.add(user)
             db.session.commit()
             flash('Congratulations, you just created a user', 'success')
@@ -169,8 +194,3 @@ def delete_user(user_id):
     db.session.commit()
     flash('User Deleted', 'success')
     return redirect(url_for('auth.browse_users'), 302)
-
-
-
-
-
