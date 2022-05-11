@@ -16,3 +16,12 @@ def create_database():
     if not os.path.exists(dbdir):
         os.mkdir(dbdir)
     db.create_all()
+
+    @click.command(name='create-log')
+    @with_appcontext
+    def create_logs():
+        root = os.path.dirname(os.path.abspath(__file__))
+        logdir = os.path.join(root, '../../logs')
+        # create directory if it does not exist
+        if not os.path.exists(logdir):
+            os.mkdir(logdir)
