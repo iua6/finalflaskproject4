@@ -1,4 +1,4 @@
-## Project Setup
+### Project Setup
 
 [![Production Workflow 1](https://github.com/iua6/finalflaskproject4/actions/workflows/prod.yml/badge.svg)](https://github.com/iua6/flaskauthproject3/actions/workflows/prod.yml)
 
