@@ -1,4 +1,5 @@
-"""Testing the Calculator"""
+"""The Calculator Test"""
+#testing the calculator
 from calculator import Calculator
 
 

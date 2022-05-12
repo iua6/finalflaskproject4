@@ -25,7 +25,7 @@ def test_context_variables_year(client):
 def test_context_currency_format(client):
     """This tests checks if the copyright and current year are printed"""
     response = client.get("/")
-    num=100
+    num=10000
     test_string = f"{num}"
     content = bytes(test_string, 'utf-8')
     assert response.status_code == 200
