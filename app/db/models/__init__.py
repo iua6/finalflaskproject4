@@ -93,3 +93,5 @@ class User(UserMixin, db.Model):
         return '<User %r>' % self.email
 
 
+class Transaction:
+    pass

@@ -5,8 +5,11 @@ from jinja2 import TemplateNotFound
 from sqlalchemy import select
 from werkzeug.security import generate_password_hash
 
-from app.auth.decorators import admin_required
-from app.auth.forms import login_form, register_form, profile_form, security_form, user_edit_form
+from app.auth.decorators._init_ import admin_required
+from app.auth.forms._init_ import register_form, profile_form, security_form, user_edit_form, login_form
+
+admin_required
+login_form, register_form, profile_form, security_form, user_edit_form
 from app.db import db
 from app.db.models import User, Transaction
 from flask_mail import Message
